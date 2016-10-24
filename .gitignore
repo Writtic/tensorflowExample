@@ -126,3 +126,4 @@ ENV/
 
 imagenet/
 data/
+image_recognition.py

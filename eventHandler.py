@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 # Inception-v3 모델을 이용한 Image Classification
 
+# 전달 받은 이미지 처리 라이브러리
+from PIL import Image, ImageDraw
+import json
+
 # 절대 임포트 설정
 from __future__ import absolute_import
 from __future__ import division
@@ -10,10 +14,8 @@ from __future__ import print_function
 import os.path
 import re
 import sys
-import tarfile
 
 import numpy as np
-from six.moves import urllib
 import tensorflow as tf
 
 FLAGS = tf.app.flags.FLAGS
@@ -28,18 +30,64 @@ FLAGS = tf.app.flags.FLAGS
 # Inception-v3 모델을 다운로드 받을 경로를 설정
 tf.app.flags.DEFINE_string(
     'model_dir', '/Users/jeasungpark/imagenet',
+    # 테스트 용
+    # 'model_dir', '/Users/Writtic/Document/repository/tensorflowExample/imagenet',
     """Path to classify_image_graph_def.pb, """
     """imagenet_synset_to_human_label_map.txt, and """
     """imagenet_2012_challenge_label_map_proto.pbtxt.""")
 # 읽을 이미지 파일의 경로를 설정
-tf.app.flags.DEFINE_string('image_file', '',
-                           """Absolute path to image file.""")
+tf.app.flags.DEFINE_string(
+    'image_file', '/Users/jeasungpark/imagenet/image.jpg',
+    # 테스트 용
+    # 'image_file', '/Users/Writtic/Document/repository/tensorflowExample/imagenet/image.jpg',
+    """Absolute path to image file.""")
 # 이미지의 추론결과를 몇개까지 표시할 것인지 설정
-tf.app.flags.DEFINE_integer('num_top_predictions', 5,
+tf.app.flags.DEFINE_integer('num_top_predictions', 1,
                             """Display this many predictions.""")
 
-# Inception-v3 모델을 다운로드할 URL 주소
-DATA_URL = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz'
+def eventHandler(event, context, callback):
+    imageObject = Image.new("RGB", (180, 100))
+
+    draw = ImageDraw.Draw(imageObject)
+    blueMask = int(0b11111111000000000000000000000000)
+    greenMask = int(0b00000000111111110000000000000000)
+    redMask = int(0b00000000000000001111111100000000)
+    print(blueMask)
+    print(greenMask)
+    print(redMask)
+    columnIndex = 0
+    rowIndex = 0
+    whether = False
+
+    for column in event["image"]:
+        rowIndex = 0
+        for row in column:
+            blue = int(row) & blueMask
+            blue = blue >> 24
+            green = int(row) & greenMask
+            green = green >> 16
+            red = int(row) & redMask
+            red = red >> 8
+            draw.point([(columnIndex, rowIndex)], (red, green, blue))
+            rowIndex = rowIndex + 1
+        columnIndex = columnIndex + 1
+    del draw
+
+    print(rowIndex)
+    print(columnIndex)
+
+    # imageFileName = "/Users/jeasungpark/imagenet/image.jpg"
+    imageFileName = "/Users/Writtic/Document/repository/tensorflowExample/imagenet/image.jpg"
+    imageObject.save(imageFileName)
+
+    # 인풋으로 입력할 이미지를 설정한다.
+    image = (FLAGS.image_file if FLAGS.image_file else
+             os.path.join(FLAGS.model_dir, "image.jpg"))
+    # 인풋으로 입력되는 이미지에 대한 추론을 실행한다.
+    result = run_inference_on_image(image)
+
+    # 추론 결과를 result에 저장하고 넘긴다.
+    callback["result"] = result
 
 # 정수 형태의 node ID를 인간이 이해할 수 있는 레이블로 변환
 class NodeLookup(object):
@@ -75,7 +123,7 @@ class NodeLookup(object):
         for line in proto_as_ascii_lines:
             parsed_items = p.findall(line)
             uid = parsed_items[0]
-            human_string = parsed_items[2]
+            human_string = parsed_items[2].split(", ")[0]
             uid_to_human[uid] = human_string
 
         # 문자 UID로부터 정수 node ID에 대한 맵핑을 로드함.
@@ -119,7 +167,7 @@ def run_inference_on_image(image):
     Args:
       image: 이미지 파일 이름.
     Returns:
-      없음(Nothing)
+      human_string: 사람이 인지할 수 있는 문자열 추론 결과.
     """
     if not tf.gfile.Exists(image):
         tf.logging.fatal('File does not exist %s', image)
@@ -146,40 +194,6 @@ def run_inference_on_image(image):
         top_k = predictions.argsort()[-FLAGS.num_top_predictions:][::-1]
         for node_id in top_k:
             human_string = node_lookup.id_to_string(node_id)
-            score = predictions[node_id]
-            print('%s (score = %.5f)' % (human_string, score))
-
-def maybe_download_and_extract():
-    """Download and extract model tar file."""
-    dest_directory = "/Users/jeasungpark/imagenet"
-    if not os.path.exists(dest_directory):
-        os.makedirs(dest_directory)
-    filename = DATA_URL.split('/')[-1]
-    filepath = os.path.join(dest_directory, filename)
-    print("filepath: ")
-    print(filepath)
-    if not os.path.exists(filepath):
-        def _progress(count, block_size, total_size):
-            sys.stdout.write('\r>> Downloading %s %.1f%%' % (
-                filename, float(count * block_size) / float(total_size) * 100.0))
-            sys.stdout.flush()
-        filepath, _ = urllib.request.urlretrieve(DATA_URL, filepath, _progress)
-        print()
-        statinfo = os.stat(filepath)
-        print('Succesfully downloaded', filename, statinfo.st_size, 'bytes.')
-    tarfile.open(filepath, 'r:gz').extractall(dest_directory)
-
-def main(argv=None):
-    # Inception-v3 모델을 다운로드하고 압축을 푼다.
-    maybe_download_and_extract()
-    # 인풋으로 입력할 이미지를 설정한다.
-    # image = (FLAGS.image_file if FLAGS.image_file else
-    #          os.path.join(FLAGS.model_dir, 'cropped_panda.jpg'))
-    # 고양이 이미지에 대해 prediction
-    image = (FLAGS.image_file if FLAGS.image_file else
-             os.path.join(FLAGS.model_dir, "DD.jpg"))
-    # 인풋으로 입력되는 이미지에 대한 추론을 실행한다.
-    run_inference_on_image(image)
-
-if __name__ == '__main__':
-    tf.app.run()
+            # score = predictions[node_id]
+            # print('%s (score = %.5f)' % (human_string, score))
+        return human_string
