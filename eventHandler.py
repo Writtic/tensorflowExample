@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
 # Inception-v3 모델을 이용한 Image Classification
 
-# 전달 받은 이미지 처리 라이브러리
-from PIL import Image, ImageDraw
-import json
-
 # 절대 임포트 설정
 from __future__ import absolute_import
 from __future__ import division
