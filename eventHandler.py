@@ -155,41 +155,6 @@ def run_inference_on_image(image):
 
 
 def eventHandler(event, context, callback):
-    imageObject = Image.new("RGB", (180, 100))
-
-    draw = ImageDraw.Draw(imageObject)
-    blueMask = int(0b11111111000000000000000000000000)
-    greenMask = int(0b00000000111111110000000000000000)
-    redMask = int(0b00000000000000001111111100000000)
-    print(blueMask)
-    print(greenMask)
-    print(redMask)
-    columnIndex = 0
-    rowIndex = 0
-    whether = False
-
-    for column in event["image"]:
-        rowIndex = 0
-        for row in column:
-            blue = int(row) & blueMask
-            blue = blue >> 24
-            green = int(row) & greenMask
-            green = green >> 16
-            red = int(row) & redMask
-            red = red >> 8
-            draw.point([(columnIndex, rowIndex)], (red, green, blue))
-            rowIndex = rowIndex + 1
-        columnIndex = columnIndex + 1
-    del draw
-
-    print(rowIndex)
-    print(columnIndex)
-
-    imageFileName = "/Users/jeasungpark/imagenet/image.jpg"
-    # 테스트 용
-    # imageFileName = "/Users/Writtic/Document/repository/tensorflowExample/imagenet/image.jpg"
-    imageObject.save(imageFileName)
-
     # 인풋으로 입력할 이미지를 설정한다.
     image = (FLAGS.image_file if FLAGS.image_file else
              os.path.join(FLAGS.model_dir, "image.jpg"))

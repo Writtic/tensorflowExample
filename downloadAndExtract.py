@@ -10,7 +10,7 @@ DATA_URL = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-
 
 def maybe_download_and_extract():
     """Download and extract model tar file."""
-    dest_directory = '/Users/Writtic/imagenet'
+    dest_directory = '/Users/jeasungpark/imagenet'
     if not os.path.exists(dest_directory):
         os.makedirs(dest_directory)
     filename = DATA_URL.split('/')[-1]

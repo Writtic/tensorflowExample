@@ -27,7 +27,7 @@ FLAGS = tf.app.flags.FLAGS
 
 # Inception-v3 모델을 다운로드 받을 경로를 설정
 tf.app.flags.DEFINE_string(
-    'model_dir', '/Users/jeasungpark/imagenet',
+    'model_dir', '/Users/Writtic/imagenet',
     """Path to classify_image_graph_def.pb, """
     """imagenet_synset_to_human_label_map.txt, and """
     """imagenet_2012_challenge_label_map_proto.pbtxt.""")
@@ -151,7 +151,7 @@ def run_inference_on_image(image):
 
 def maybe_download_and_extract():
     """Download and extract model tar file."""
-    dest_directory = "/Users/jeasungpark/imagenet"
+    dest_directory = "/Users/Writtic/imagenet"
     if not os.path.exists(dest_directory):
         os.makedirs(dest_directory)
     filename = DATA_URL.split('/')[-1]
@@ -177,7 +177,7 @@ def main(argv=None):
     #          os.path.join(FLAGS.model_dir, 'cropped_panda.jpg'))
     # 고양이 이미지에 대해 prediction
     image = (FLAGS.image_file if FLAGS.image_file else
-             os.path.join(FLAGS.model_dir, "DD.jpg"))
+             os.path.join(FLAGS.model_dir, "cropped_panda.jpg"))
     # 인풋으로 입력되는 이미지에 대한 추론을 실행한다.
     run_inference_on_image(image)
 
