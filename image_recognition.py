@@ -2,9 +2,9 @@
 # Inception-v3 모델을 이용한 Image Classification
 
 # 절대 임포트 설정
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+# from __future__ import absolute_import
+# from __future__ import division
+# from __future__ import print_function
 
 # 필요한 라이브러리들을 임포트
 import os.path
@@ -177,7 +177,7 @@ def main(argv=None):
     #          os.path.join(FLAGS.model_dir, 'cropped_panda.jpg'))
     # 고양이 이미지에 대해 prediction
     image = (FLAGS.image_file if FLAGS.image_file else
-             os.path.join(FLAGS.model_dir, "cropped_panda.jpg"))
+             os.path.join(FLAGS.model_dir, "labtop.jpg"))
     # 인풋으로 입력되는 이미지에 대한 추론을 실행한다.
     run_inference_on_image(image)
 
